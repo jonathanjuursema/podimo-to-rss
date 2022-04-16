@@ -33,7 +33,7 @@ jobs:
         with:
           context: .
           tags: |
-            ghcr.io/kickin-media/jonathanjuursema/podimo-to-rss:latest
+            ghcr.io/jonathanjuursema/podimo-to-rss:latest
           # build on feature branches, push only on main branch
           push: ${{ github.ref == 'refs/heads/main' }}
 
