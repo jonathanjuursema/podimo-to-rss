@@ -4,3 +4,5 @@ feedgen
 flask
 Flask-Limiter
 waitress
+fastapi
+uvicorn
