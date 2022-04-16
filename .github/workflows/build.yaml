@@ -1,8 +1,8 @@
-name: Build and Publish
+name: Build and Publish Container
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths:
       - .github/workflows/build.yaml
       - src/**
@@ -35,7 +35,7 @@ jobs:
           tags: |
             ghcr.io/kickin-media/jonathanjuursema/podimo-to-rss:latest
           # build on feature branches, push only on main branch
-          push: ${{ github.ref == 'refs/heads/master' }}
+          push: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
