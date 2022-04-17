@@ -41,8 +41,6 @@ feed_cache_time = 60 * 15  # seconds = 15 minutes
 async def root(podcast_id: str):
     id_pattern = re.compile('[0-9a-fA-F\-]+')
 
-    print(PODIMO_USERNAME)
-
     # Authenticate
     if not check_auth(PODIMO_USERNAME, PODIMO_PASSWORD):
         return authenticate()
