@@ -23,6 +23,7 @@ FEED_CACHE = {}
 TOKEN_CACHE = {}
 
 
+@api.head("/podcast/{podcast_id}.xml")
 @api.get("/podcast/{podcast_id}.xml")
 async def root(podcast_id: str):
     podcast_feed = podimo_podcast_to_rss(podimo_username=PODIMO_USERNAME,
