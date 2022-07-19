@@ -21,6 +21,7 @@ PODIMO_PASSWORD = str(getenv("PODIMO_PASSWORD"))
 
 FEED_CACHE = {}
 TOKEN_CACHE = {}
+CONTENT_LENGTH_CACHE = {}
 
 
 @api.head("/podcast/{podcast_id}.xml")
@@ -30,6 +31,7 @@ async def root(podcast_id: str):
                                          podimo_password=PODIMO_PASSWORD,
                                          podcast_id=podcast_id,
                                          feed_cache=FEED_CACHE,
-                                         token_cache=TOKEN_CACHE)
+                                         token_cache=TOKEN_CACHE,
+                                         content_length_cache=CONTENT_LENGTH_CACHE)
 
     return podcast_feed

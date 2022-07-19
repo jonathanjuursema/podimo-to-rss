@@ -16,7 +16,7 @@ GRAPHQL_URL = "https://graphql.pdm-gateway.com/graphql"
 
 
 def podimo_podcast_to_rss(podimo_username: str, podimo_password: str, podcast_id: str,
-                          feed_cache: dict, token_cache: dict):
+                          feed_cache: dict, token_cache: dict, content_length_cache: dict):
     # Validate podcast ID
     id_pattern = re.compile('[0-9a-fA-F\-]+')
     if id_pattern.fullmatch(podcast_id) is None:
@@ -31,8 +31,8 @@ def podimo_podcast_to_rss(podimo_username: str, podimo_password: str, podcast_id
         xml_feed = feed_cache[(auth_hash, podcast_id)][0]
     else:
         feed_data = podimo_get_podcast_data(podimo_token=auth_token, podcast_id=podcast_id)
-        xml_feed = podcast_data_to_rss_feed(podimo_data=feed_data)
-        feed_cache[(auth_hash, podcast_id)] = (xml_feed, time() + 60 * 15)
+        xml_feed = podcast_data_to_rss_feed(podimo_data=feed_data, content_length_cache=content_length_cache)
+        # feed_cache[(auth_hash, podcast_id)] = (xml_feed, time() + 60 * 15)
 
     return Response(content=xml_feed, media_type='text/xml')
 
@@ -97,7 +97,7 @@ def podimo_get_podcast_data(podimo_token: str, podcast_id: str):
     return data
 
 
-def podcast_data_to_rss_feed(podimo_data):
+def podcast_data_to_rss_feed(podimo_data, content_length_cache: dict):
     fg = FeedGenerator()
     fg.load_extension('podcast')
 
@@ -116,8 +116,14 @@ def podcast_data_to_rss_feed(podimo_data):
         fe = fg.add_entry()
         fe.title(episode['title'])
         url = episode['streamMedia']['url']
+
+        # Deal with Podimo's new URL structure.
+        if "hls-media" in url and "/main.m3u8" in url:
+            url = url.replace("hls-media", "audios")
+            url = url.replace("/main.m3u8", ".mp3")
+
         mt, enc = guess_type(url)
-        episode_length = head(url).headers['content-length']
+        episode_length = get_content_length(url=url, content_length_cache=content_length_cache)
         fe.enclosure(url, episode_length, mt)
         fe.podcast.itunes_duration(episode['streamMedia']['duration'])
         fe.description(episode['description'])
@@ -125,6 +131,16 @@ def podcast_data_to_rss_feed(podimo_data):
 
     feed = fg.rss_str(pretty=True)
     return feed
+
+
+def get_content_length(url: str, content_length_cache: dict):
+    # I'm assuming the content length doesn't change, as that would mean the actual podcast episode has changed.
+    if url in content_length_cache.keys():
+        return content_length_cache[url]
+    else:
+        content_length = head(url).headers['content-length']
+        content_length_cache[url] = content_length
+        return content_length
 
 
 def podimo_get_podcast_data_chunk(podimo_token: str, podcast_id: str, offset: int):
